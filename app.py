@@ -49,10 +49,7 @@ cores = {
 }
 
 def salvar_status():
-    df[["ID", "Concluída", "Observação acompanhamento"]].to_csv(
-        ARQUIVO_STATUS,
-        index=False
-    )
+    df[["ID", "Concluída", "Observação acompanhamento"]].to_csv(ARQUIVO_STATUS, index=False)
 
 def mudar_status(id_acao, concluida):
     df.loc[df["ID"] == id_acao, "Concluída"] = concluida
@@ -101,7 +98,7 @@ st.markdown("""
 
 .header-grid {
     display: grid;
-    grid-template-columns: 1.4fr 1fr;
+    grid-template-columns: 1.35fr 1fr;
     gap: 34px;
     align-items: center;
 }
@@ -119,17 +116,17 @@ st.markdown("""
 }
 
 .header-kpi {
-    background: rgba(255,255,255,0.13);
-    border: 1px solid rgba(255,255,255,0.24);
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.25);
     border-radius: 16px;
-    padding: 15px;
+    padding: 15px 10px;
     text-align: center;
 }
 
 .header-kpi-label {
     font-size: 12px;
     font-weight: 900;
-    opacity: .9;
+    opacity: .95;
     text-transform: uppercase;
 }
 
@@ -217,6 +214,16 @@ div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlock
     border-radius: 18px;
     margin-top: 20px;
 }
+
+@media (max-width: 1100px) {
+    .header-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .header-kpis {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -227,40 +234,29 @@ if logo_b64:
 else:
     logo_html = '<div style="font-size:32px;font-weight:900;">PUCRS</div>'
 
-st.markdown(f"""
+header_html = f"""
 <div class="header">
-    <div class="header-grid">
-        <div class="header-left">
-            {logo_html}
-            <div style="height:72px;width:2px;background:rgba(255,255,255,.45);"></div>
-            <div>
-                <div style="font-size:23px;font-weight:800;">ESTRUTURA DO SETOR FINANCEIRO</div>
-                <div style="font-size:52px;font-weight:950;line-height:1;margin-top:8px;">CALENDÁRIO DE AÇÕES</div>
-                <div style="font-size:20px;color:#8FDBFF!important;margin-top:14px;">Acompanhamento das ações por área</div>
-            </div>
-        </div>
-
-        <div class="header-kpis">
-            <div class="header-kpi">
-                <div class="header-kpi-label">Total</div>
-                <div class="header-kpi-number">{total}</div>
-            </div>
-            <div class="header-kpi">
-                <div class="header-kpi-label">Concluídas</div>
-                <div class="header-kpi-number">{concluidas}</div>
-            </div>
-            <div class="header-kpi">
-                <div class="header-kpi-label">Pendentes</div>
-                <div class="header-kpi-number">{pendentes}</div>
-            </div>
-            <div class="header-kpi">
-                <div class="header-kpi-label">Atrasadas</div>
-                <div class="header-kpi-number">{atrasadas}</div>
-            </div>
-        </div>
-    </div>
+<div class="header-grid">
+<div class="header-left">
+{logo_html}
+<div style="height:72px;width:2px;background:rgba(255,255,255,.45);"></div>
+<div>
+<div style="font-size:23px;font-weight:800;">ESTRUTURA DO SETOR FINANCEIRO</div>
+<div style="font-size:52px;font-weight:950;line-height:1;margin-top:8px;">CALENDÁRIO DE AÇÕES</div>
+<div style="font-size:20px;color:#8FDBFF!important;margin-top:14px;">Acompanhamento das ações por área</div>
 </div>
-""", unsafe_allow_html=True)
+</div>
+<div class="header-kpis">
+<div class="header-kpi"><div class="header-kpi-label">Total</div><div class="header-kpi-number">{total}</div></div>
+<div class="header-kpi"><div class="header-kpi-label">Concluídas</div><div class="header-kpi-number">{concluidas}</div></div>
+<div class="header-kpi"><div class="header-kpi-label">Pendentes</div><div class="header-kpi-number">{pendentes}</div></div>
+<div class="header-kpi"><div class="header-kpi-label">Atrasadas</div><div class="header-kpi-number">{atrasadas}</div></div>
+</div>
+</div>
+</div>
+"""
+
+st.markdown(header_html, unsafe_allow_html=True)
 
 st.subheader("Ações por área")
 
@@ -289,10 +285,10 @@ def renderizar_acoes(base, nome_aba):
             with st.container(border=True):
                 st.markdown(
                     f"""
-                    <div style="border-top:8px solid {cor}; border-radius:18px; padding-top:14px;">
-                        <div class="area-title">{escape(str(area))}</div>
-                        <div class="area-subtitle">{len(dados_area)} ações</div>
-                    </div>
+<div style="border-top:8px solid {cor}; border-radius:18px; padding-top:14px;">
+<div class="area-title">{escape(str(area))}</div>
+<div class="area-subtitle">{len(dados_area)} ações</div>
+</div>
                     """,
                     unsafe_allow_html=True
                 )
@@ -323,10 +319,10 @@ def renderizar_acoes(base, nome_aba):
                     with st.container(border=True):
                         st.markdown(
                             f"""
-                            <span class="pill" style="background:{cor};">{data_txt}</span>
-                            <span class="pill" style="background:{status_cor};">{status_txt}</span>
-                            <div class="action-title">{escape(str(acao))}</div>
-                            <div class="obs-original">{escape(str(obs))}</div>
+<span class="pill" style="background:{cor};">{data_txt}</span>
+<span class="pill" style="background:{status_cor};">{status_txt}</span>
+<div class="action-title">{escape(str(acao))}</div>
+<div class="obs-original">{escape(str(obs))}</div>
                             """,
                             unsafe_allow_html=True
                         )
@@ -366,6 +362,6 @@ with aba_todas:
 
 st.markdown("""
 <div class="footer">
-    Calendário visual de ações do Setor Financeiro | Acompanhamento por cards
+Calendário visual de ações do Setor Financeiro | Acompanhamento por cards
 </div>
 """, unsafe_allow_html=True)
