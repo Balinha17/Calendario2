@@ -49,10 +49,7 @@ cores = {
 }
 
 def salvar_status():
-    df[["ID", "Concluída", "Observação acompanhamento"]].to_csv(
-        ARQUIVO_STATUS,
-        index=False
-    )
+    df[["ID", "Concluída", "Observação acompanhamento"]].to_csv(ARQUIVO_STATUS, index=False)
 
 def mudar_status(id_acao, concluida):
     df.loc[df["ID"] == id_acao, "Concluída"] = concluida
@@ -72,47 +69,21 @@ def img_to_base64(path):
 
 st.markdown("""
 <style>
-:root {
-    --app-bg: #F5F7FB;
-    --card-bg: #FFFFFF;
-    --card-inner: #F1F5FB;
-    --text-main: #00133F;
-    --text-muted: #46556B;
-    --border-soft: #D5DEEC;
-    --input-bg: #EEF2F7;
-}
-
-@media (prefers-color-scheme: dark) {
-    :root {
-        --app-bg: #0E1117;
-        --card-bg: #161B24;
-        --card-inner: #202837;
-        --text-main: #F8FAFC;
-        --text-muted: #CBD5E1;
-        --border-soft: #384456;
-        --input-bg: #232B3A;
-    }
-}
-
 .stApp {
-    background: var(--app-bg) !important;
+    background: #F4F7FB;
 }
 
 .block-container {
-    padding-top: 1.4rem;
-}
-
-h1, h2, h3, h4, h5, h6, p, label, span, div {
-    color: var(--text-main);
+    padding-top: 1.5rem;
 }
 
 .header {
-    background: linear-gradient(90deg,#00133F,#004AAD);
-    border-radius: 24px;
-    padding: 36px 42px;
-    color: white !important;
-    box-shadow: 0 8px 24px rgba(0,27,94,.28);
-    margin-bottom: 28px;
+    background: linear-gradient(90deg, #001B5E, #004AAD);
+    padding: 34px 42px;
+    border-radius: 22px;
+    color: white;
+    margin-bottom: 26px;
+    box-shadow: 0 10px 28px rgba(0, 27, 94, 0.22);
 }
 
 .header * {
@@ -120,50 +91,75 @@ h1, h2, h3, h4, h5, h6, p, label, span, div {
 }
 
 .kpi-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-soft);
+    background: white;
     border-radius: 20px;
     padding: 22px;
-    box-shadow: 0 5px 18px rgba(0,0,0,.08);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+    border: 1px solid #D9E2F1;
 }
 
 .kpi-label {
-    color: var(--text-main);
-    font-size: 15px;
+    color: #001B5E;
+    font-size: 14px;
     font-weight: 900;
+    text-transform: uppercase;
 }
 
 .kpi-number {
     color: #0077FF;
-    font-size: 42px;
+    font-size: 40px;
     font-weight: 950;
 }
 
+.filter-box {
+    background: white;
+    border: 1px solid #D9E2F1;
+    border-radius: 20px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+
+.area-card {
+    background: white;
+    border-radius: 22px;
+    padding: 20px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    border: 1px solid #D9E2F1;
+    min-height: 520px;
+    margin-bottom: 22px;
+}
+
 .area-title {
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 950;
-    color: var(--text-main);
-    margin-bottom: 2px;
+    color: #001B5E;
+    margin-bottom: 4px;
 }
 
 .area-subtitle {
     font-size: 14px;
-    color: var(--text-muted);
+    color: #516077;
     font-weight: 700;
-    margin-bottom: 14px;
+    margin-bottom: 18px;
+}
+
+.action-box {
+    border-top: 1px solid #E8EEF7;
+    padding: 16px 0 14px 0;
 }
 
 .action-title {
-    font-size: 17px;
+    font-size: 15px;
     font-weight: 950;
-    color: var(--text-main);
+    color: #00133F;
     margin-top: 4px;
 }
 
 .obs-original {
-    margin-top: 8px;
-    color: var(--text-muted);
-    font-size: 14px;
+    margin-top: 7px;
+    color: #3B465A;
+    font-size: 13px;
     line-height: 1.35;
 }
 
@@ -175,41 +171,21 @@ h1, h2, h3, h4, h5, h6, p, label, span, div {
     font-weight: 900;
     font-size: 12px;
     margin-right: 6px;
-    margin-bottom: 8px;
-}
-
-.area-divider {
-    height: 1px;
-    background: var(--border-soft);
-    margin: 16px 0;
-}
-
-[data-testid="stVerticalBlockBorderWrapper"] {
-    background: var(--card-bg) !important;
-    border-color: var(--border-soft) !important;
-    box-shadow: 0 5px 16px rgba(0,0,0,.07);
-}
-
-textarea, input, [data-baseweb="input"] {
-    background-color: var(--input-bg) !important;
-    color: var(--text-main) !important;
+    margin-bottom: 7px;
 }
 
 .stTextArea textarea {
-    background-color: var(--input-bg) !important;
-    color: var(--text-main) !important;
+    background-color: #F1F5FA !important;
+    border-radius: 12px !important;
+    color: #00133F !important;
 }
 
 .footer {
     background: #001B5E;
-    color: white !important;
+    color: white;
     padding: 18px 24px;
     border-radius: 18px;
     margin-top: 20px;
-}
-
-.footer * {
-    color: white !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -217,7 +193,7 @@ textarea, input, [data-baseweb="input"] {
 logo_b64 = img_to_base64(LOGO_PATH)
 
 if logo_b64:
-    logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="height:80px;">'
+    logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="height:76px;">'
 else:
     logo_html = '<div style="font-size:32px;font-weight:900;">PUCRS</div>'
 
@@ -225,77 +201,81 @@ st.markdown(f"""
 <div class="header">
     <div style="display:flex;align-items:center;gap:30px;">
         {logo_html}
-        <div style="height:78px;width:2px;background:rgba(255,255,255,.45);"></div>
+        <div style="height:72px;width:2px;background:rgba(255,255,255,.45);"></div>
         <div>
-            <div style="font-size:24px;font-weight:800;">ESTRUTURA DO SETOR FINANCEIRO</div>
-            <div style="font-size:54px;font-weight:950;line-height:1;margin-top:8px;">CALENDÁRIO DE AÇÕES</div>
-            <div style="font-size:21px;color:#8FDBFF;margin-top:14px;">Acompanhamento das ações por área</div>
+            <div style="font-size:23px;font-weight:800;">ESTRUTURA DO SETOR FINANCEIRO</div>
+            <div style="font-size:52px;font-weight:950;line-height:1;margin-top:8px;">CALENDÁRIO DE AÇÕES</div>
+            <div style="font-size:20px;color:#8FDBFF!important;margin-top:14px;">Acompanhamento das ações por área</div>
         </div>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-st.subheader("Filtros")
-
-col_f1, col_f2, col_f3, col_f4 = st.columns([2, 1, 1, 1])
-
+# Filtros por botão
 areas_disponiveis = sorted(df["Área"].dropna().unique())
 
-areas_selecionadas = col_f1.multiselect(
-    "Área",
-    options=areas_disponiveis,
-    default=areas_disponiveis
-)
+if "areas_selecionadas" not in st.session_state:
+    st.session_state.areas_selecionadas = areas_disponiveis.copy()
 
-periodo_rapido = col_f2.radio(
-    "Período rápido",
-    ["Todos", "Semana", "Mês"],
-    horizontal=True
-)
+st.markdown('<div class="filter-box">', unsafe_allow_html=True)
+st.markdown("### Filtros")
 
-data_inicio = col_f3.date_input(
-    "Data inicial",
-    value=df["Data"].min().date()
-)
+botoes = st.columns(len(areas_disponiveis) + 1)
 
-data_fim = col_f4.date_input(
-    "Data final",
-    value=df["Data"].max().date()
-)
+if botoes[0].button("Todas as áreas"):
+    st.session_state.areas_selecionadas = areas_disponiveis.copy()
+    st.rerun()
 
-base_filtrada = df.copy()
+for i, area in enumerate(areas_disponiveis, start=1):
+    ativo = area in st.session_state.areas_selecionadas
+    label = f"✅ {area}" if ativo else area
 
-if periodo_rapido == "Semana":
-    inicio = hoje.normalize()
-    fim = inicio + pd.Timedelta(days=7)
+    if botoes[i].button(label):
+        if ativo:
+            st.session_state.areas_selecionadas.remove(area)
+        else:
+            st.session_state.areas_selecionadas.append(area)
+        st.rerun()
+
+p1, p2, p3 = st.columns(3)
+
+if p1.button("Todos os períodos"):
+    st.session_state.periodo = "todos"
+    st.rerun()
+
+if p2.button("Próximos 7 dias"):
+    st.session_state.periodo = "semana"
+    st.rerun()
+
+if p3.button("Próximos 30 dias"):
+    st.session_state.periodo = "mes"
+    st.rerun()
+
+if "periodo" not in st.session_state:
+    st.session_state.periodo = "todos"
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+base_filtrada = df[df["Área"].isin(st.session_state.areas_selecionadas)].copy()
+
+if st.session_state.periodo == "semana":
     base_filtrada = base_filtrada[
-        (base_filtrada["Data"] >= inicio) &
-        (base_filtrada["Data"] <= fim)
+        (base_filtrada["Data"] >= hoje) &
+        (base_filtrada["Data"] <= hoje + pd.Timedelta(days=7))
     ]
 
-elif periodo_rapido == "Mês":
-    inicio = hoje.normalize()
-    fim = inicio + pd.Timedelta(days=30)
+elif st.session_state.periodo == "mes":
     base_filtrada = base_filtrada[
-        (base_filtrada["Data"] >= inicio) &
-        (base_filtrada["Data"] <= fim)
+        (base_filtrada["Data"] >= hoje) &
+        (base_filtrada["Data"] <= hoje + pd.Timedelta(days=30))
     ]
-
-else:
-    base_filtrada = base_filtrada[
-        (base_filtrada["Data"] >= pd.Timestamp(data_inicio)) &
-        (base_filtrada["Data"] <= pd.Timestamp(data_fim))
-    ]
-
-base_filtrada = base_filtrada[base_filtrada["Área"].isin(areas_selecionadas)]
 
 base_filtrada = base_filtrada.sort_values(
     by=["Atrasada", "Hoje", "Data"],
     ascending=[False, False, True]
 )
 
-st.divider()
-
+# KPIs
 total = len(base_filtrada)
 concluidas = int(base_filtrada["Concluída"].sum())
 pendentes = total - concluidas
@@ -334,95 +314,81 @@ def renderizar_acoes(base, nome_aba):
         cor = cores.get(str(area).upper().strip(), "#001B5E")
 
         with cols[i % 3]:
-            with st.container(border=True):
+            st.markdown(
+                f"""
+                <div class="area-card" style="border-top:8px solid {cor};">
+                    <div class="area-title">{escape(str(area))}</div>
+                    <div class="area-subtitle">{len(dados_area)} ações neste filtro</div>
+                """,
+                unsafe_allow_html=True
+            )
+
+            for _, row in dados_area.iterrows():
+                id_acao = row["ID"]
+                data_txt = row["Data"].strftime("%d/%m")
+                acao = row["Ação sobre"]
+                obs = row["Observação"]
+                obs_acomp = row["Observação acompanhamento"]
+
+                if row["Concluída"]:
+                    status_txt = "Concluída"
+                    status_cor = "#17A65B"
+                elif row["Atrasada"]:
+                    status_txt = "Atrasada"
+                    status_cor = "#D62828"
+                elif row["Hoje"]:
+                    status_txt = "Hoje"
+                    status_cor = "#FFB000"
+                else:
+                    status_txt = "Pendente"
+                    status_cor = "#6B7280"
+
                 st.markdown(
                     f"""
-                    <div style="border-top:8px solid {cor}; border-radius:18px; padding-top:16px;">
-                        <div class="area-title">{escape(str(area))}</div>
-                        <div class="area-subtitle">{len(dados_area)} ações neste filtro</div>
+                    <div class="action-box">
+                        <span class="pill" style="background:{cor};">{data_txt}</span>
+                        <span class="pill" style="background:{status_cor};">{status_txt}</span>
+                        <div class="action-title">{escape(str(acao))}</div>
+                        <div class="obs-original">{escape(str(obs))}</div>
                     </div>
                     """,
                     unsafe_allow_html=True
                 )
 
-                for idx, (_, row) in enumerate(dados_area.iterrows()):
-                    id_acao = row["ID"]
-                    data_txt = row["Data"].strftime("%d/%m")
-                    acao = row["Ação sobre"]
-                    obs = row["Observação"]
-                    obs_acomp = row["Observação acompanhamento"]
+                key_base = f"{nome_aba}_{id_acao}"
 
-                    if row["Concluída"]:
-                        status_txt = "Concluída"
-                        status_cor = "#17A65B"
-                    elif row["Atrasada"]:
-                        status_txt = "Atrasada"
-                        status_cor = "#D62828"
-                    elif row["Hoje"]:
-                        status_txt = "Hoje"
-                        status_cor = "#FFB000"
-                    else:
-                        status_txt = "Pendente"
-                        status_cor = "#6B7280"
+                nova_obs = st.text_area(
+                    "Observação de acompanhamento",
+                    value=str(obs_acomp) if pd.notna(obs_acomp) else "",
+                    key=f"obs_{key_base}",
+                    height=68
+                )
 
-                    if idx > 0:
-                        st.markdown('<div class="area-divider"></div>', unsafe_allow_html=True)
+                b1, b2 = st.columns([1.2, 1])
 
-                    with st.container(border=True):
-                        st.markdown(
-                            f"""
-                            <span class="pill" style="background:{cor};">{data_txt}</span>
-                            <span class="pill" style="background:{status_cor};">{status_txt}</span>
-                            <div class="action-title">{escape(str(acao))}</div>
-                            <div class="obs-original">{escape(str(obs))}</div>
-                            """,
-                            unsafe_allow_html=True
-                        )
+                if b1.button("Salvar observação", key=f"salvar_{key_base}"):
+                    salvar_observacao(id_acao, nova_obs)
 
-                        key_base = f"{nome_aba}_{id_acao}"
+                if row["Concluída"]:
+                    if b2.button("Desfazer", key=f"desfazer_{key_base}"):
+                        mudar_status(id_acao, False)
+                else:
+                    if b2.button("Concluir", key=f"concluir_{key_base}", type="primary"):
+                        mudar_status(id_acao, True)
 
-                        nova_obs = st.text_area(
-                            "Observação de acompanhamento",
-                            value=str(obs_acomp) if pd.notna(obs_acomp) else "",
-                            key=f"obs_{key_base}",
-                            height=70
-                        )
-
-                        b1, b2 = st.columns([1.3, 1])
-
-                        if b1.button("Salvar observação", key=f"salvar_{key_base}"):
-                            salvar_observacao(id_acao, nova_obs)
-
-                        if row["Concluída"]:
-                            if b2.button("Desfazer", key=f"desfazer_{key_base}"):
-                                mudar_status(id_acao, False)
-                        else:
-                            if b2.button("Concluir", key=f"concluir_{key_base}", type="primary"):
-                                mudar_status(id_acao, True)
+            st.markdown("</div>", unsafe_allow_html=True)
 
 with aba_pendentes:
-    renderizar_acoes(
-        base_filtrada[base_filtrada["Concluída"] == False],
-        "pendentes"
-    )
+    renderizar_acoes(base_filtrada[base_filtrada["Concluída"] == False], "pendentes")
 
 with aba_concluidas:
-    renderizar_acoes(
-        base_filtrada[base_filtrada["Concluída"] == True],
-        "concluidas"
-    )
+    renderizar_acoes(base_filtrada[base_filtrada["Concluída"] == True], "concluidas")
 
 with aba_atrasadas:
-    renderizar_acoes(
-        base_filtrada[base_filtrada["Atrasada"] == True],
-        "atrasadas"
-    )
+    renderizar_acoes(base_filtrada[base_filtrada["Atrasada"] == True], "atrasadas")
 
 with aba_todas:
-    renderizar_acoes(
-        base_filtrada,
-        "todas"
-    )
+    renderizar_acoes(base_filtrada, "todas")
 
 st.markdown("""
 <div class="footer">
