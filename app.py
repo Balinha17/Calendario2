@@ -11,10 +11,6 @@ ARQUIVO_EXCEL = "Calendário2.xlsx"
 ARQUIVO_STATUS = "status_acoes.csv"
 LOGO_PATH = "logo_pucrs.png"
 
-# =========================
-# DADOS
-# =========================
-
 df = pd.read_excel(ARQUIVO_EXCEL)
 df.columns = df.columns.str.strip()
 
@@ -26,10 +22,10 @@ df = df.dropna(subset=["Data"])
 df = df.sort_values("Data").reset_index(drop=True)
 
 df["ID"] = (
-    df.index.astype(str) + "_"
-    + df["Data"].dt.strftime("%Y%m%d") + "_"
-    + df["Área"].astype(str) + "_"
-    + df["Ação sobre"].astype(str)
+    df.index.astype(str) + "_" +
+    df["Data"].dt.strftime("%Y%m%d") + "_" +
+    df["Área"].astype(str) + "_" +
+    df["Ação sobre"].astype(str)
 )
 
 if Path(ARQUIVO_STATUS).exists():
@@ -51,10 +47,6 @@ cores = {
     "FATURAMENTO": "#6F2DBD",
     "COBRANÇA": "#FF8C00",
 }
-
-# =========================
-# FUNÇÕES
-# =========================
 
 def salvar_status():
     df[["ID", "Concluída", "Observação acompanhamento"]].to_csv(
@@ -78,16 +70,10 @@ def img_to_base64(path):
             return base64.b64encode(img.read()).decode()
     return None
 
-def periodo_label():
-    if st.session_state.periodo == "semana":
-        return "Próximos 7 dias"
-    if st.session_state.periodo == "mes":
-        return "Próximos 30 dias"
-    return "Todos os períodos"
-
-# =========================
-# CSS
-# =========================
+total = len(df)
+concluidas = int(df["Concluída"].sum())
+pendentes = total - concluidas
+atrasadas = int(df["Atrasada"].sum())
 
 st.markdown("""
 <style>
@@ -105,7 +91,7 @@ st.markdown("""
     padding: 34px 42px;
     border-radius: 22px;
     color: white;
-    margin-bottom: 24px;
+    margin-bottom: 28px;
     box-shadow: 0 10px 28px rgba(0, 27, 94, 0.22);
 }
 
@@ -113,48 +99,45 @@ st.markdown("""
     color: white !important;
 }
 
-.filter-panel {
-    background: white;
-    border: 1px solid #D9E2F1;
-    border-radius: 20px;
-    padding: 18px 20px 14px 20px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-    margin-bottom: 18px;
+.header-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 34px;
+    align-items: center;
 }
 
-.filter-title {
-    color: #001B5E;
-    font-size: 20px;
-    font-weight: 950;
-    margin-bottom: 10px;
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 30px;
 }
 
-.filter-caption {
-    color: #536175;
-    font-size: 13px;
-    font-weight: 700;
-    margin-bottom: 8px;
+.header-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
 }
 
-.kpi-card {
-    background: white;
-    border-radius: 20px;
-    padding: 22px;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
-    border: 1px solid #D9E2F1;
+.header-kpi {
+    background: rgba(255,255,255,0.13);
+    border: 1px solid rgba(255,255,255,0.24);
+    border-radius: 16px;
+    padding: 15px;
+    text-align: center;
 }
 
-.kpi-label {
-    color: #001B5E;
-    font-size: 14px;
+.header-kpi-label {
+    font-size: 12px;
     font-weight: 900;
+    opacity: .9;
     text-transform: uppercase;
 }
 
-.kpi-number {
-    color: #0077FF;
-    font-size: 40px;
+.header-kpi-number {
+    font-size: 34px;
     font-weight: 950;
+    color: #8FDBFF !important;
+    margin-top: 4px;
 }
 
 .area-title {
@@ -213,14 +196,6 @@ st.markdown("""
     font-weight: 800;
 }
 
-.footer {
-    background: #001B5E;
-    color: white;
-    padding: 18px 24px;
-    border-radius: 18px;
-    margin-top: 20px;
-}
-
 div[data-testid="stVerticalBlockBorderWrapper"] {
     background: white !important;
     border: 1px solid #D9E2F1 !important;
@@ -234,12 +209,16 @@ div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlock
     border-radius: 16px !important;
     box-shadow: none !important;
 }
+
+.footer {
+    background: #001B5E;
+    color: white;
+    padding: 18px 24px;
+    border-radius: 18px;
+    margin-top: 20px;
+}
 </style>
 """, unsafe_allow_html=True)
-
-# =========================
-# HEADER
-# =========================
 
 logo_b64 = img_to_base64(LOGO_PATH)
 
@@ -250,131 +229,40 @@ else:
 
 st.markdown(f"""
 <div class="header">
-    <div style="display:flex;align-items:center;gap:30px;">
-        {logo_html}
-        <div style="height:72px;width:2px;background:rgba(255,255,255,.45);"></div>
-        <div>
-            <div style="font-size:23px;font-weight:800;">ESTRUTURA DO SETOR FINANCEIRO</div>
-            <div style="font-size:52px;font-weight:950;line-height:1;margin-top:8px;">CALENDÁRIO DE AÇÕES</div>
-            <div style="font-size:20px;color:#8FDBFF!important;margin-top:14px;">Acompanhamento das ações por área</div>
+    <div class="header-grid">
+        <div class="header-left">
+            {logo_html}
+            <div style="height:72px;width:2px;background:rgba(255,255,255,.45);"></div>
+            <div>
+                <div style="font-size:23px;font-weight:800;">ESTRUTURA DO SETOR FINANCEIRO</div>
+                <div style="font-size:52px;font-weight:950;line-height:1;margin-top:8px;">CALENDÁRIO DE AÇÕES</div>
+                <div style="font-size:20px;color:#8FDBFF!important;margin-top:14px;">Acompanhamento das ações por área</div>
+            </div>
+        </div>
+
+        <div class="header-kpis">
+            <div class="header-kpi">
+                <div class="header-kpi-label">Total</div>
+                <div class="header-kpi-number">{total}</div>
+            </div>
+            <div class="header-kpi">
+                <div class="header-kpi-label">Concluídas</div>
+                <div class="header-kpi-number">{concluidas}</div>
+            </div>
+            <div class="header-kpi">
+                <div class="header-kpi-label">Pendentes</div>
+                <div class="header-kpi-number">{pendentes}</div>
+            </div>
+            <div class="header-kpi">
+                <div class="header-kpi-label">Atrasadas</div>
+                <div class="header-kpi-number">{atrasadas}</div>
+            </div>
         </div>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# =========================
-# FILTROS
-# =========================
-
-areas_disponiveis = sorted(df["Área"].dropna().unique())
-
-if "areas_selecionadas" not in st.session_state:
-    st.session_state.areas_selecionadas = areas_disponiveis.copy()
-
-if "periodo" not in st.session_state:
-    st.session_state.periodo = "todos"
-
-st.markdown("""
-<div class="filter-panel">
-    <div class="filter-title">Filtros</div>
-</div>
-""", unsafe_allow_html=True)
-
-st.markdown('<div class="filter-caption">Áreas</div>', unsafe_allow_html=True)
-
-area_cols = st.columns(len(areas_disponiveis) + 1, gap="small")
-
-with area_cols[0]:
-    if st.button("Todas", use_container_width=True):
-        st.session_state.areas_selecionadas = areas_disponiveis.copy()
-        st.rerun()
-
-for idx, area in enumerate(areas_disponiveis, start=1):
-    ativo = area in st.session_state.areas_selecionadas
-    label = f"✓ {area}" if ativo else area
-
-    with area_cols[idx]:
-        if st.button(label, use_container_width=True):
-            if ativo:
-                st.session_state.areas_selecionadas.remove(area)
-            else:
-                st.session_state.areas_selecionadas.append(area)
-            st.rerun()
-
-st.markdown('<div class="filter-caption">Período</div>', unsafe_allow_html=True)
-
-periodo_cols = st.columns(3, gap="small")
-
-with periodo_cols[0]:
-    if st.button(
-        f"{'✓ ' if st.session_state.periodo == 'todos' else ''}Todos",
-        use_container_width=True
-    ):
-        st.session_state.periodo = "todos"
-        st.rerun()
-
-with periodo_cols[1]:
-    if st.button(
-        f"{'✓ ' if st.session_state.periodo == 'semana' else ''}Semana",
-        use_container_width=True
-    ):
-        st.session_state.periodo = "semana"
-        st.rerun()
-
-with periodo_cols[2]:
-    if st.button(
-        f"{'✓ ' if st.session_state.periodo == 'mes' else ''}Mês",
-        use_container_width=True
-    ):
-        st.session_state.periodo = "mes"
-        st.rerun()
-
-# =========================
-# BASE FILTRADA
-# =========================
-
-base_filtrada = df[df["Área"].isin(st.session_state.areas_selecionadas)].copy()
-
-if st.session_state.periodo == "semana":
-    base_filtrada = base_filtrada[
-        (base_filtrada["Data"] >= hoje) &
-        (base_filtrada["Data"] <= hoje + pd.Timedelta(days=7))
-    ]
-
-elif st.session_state.periodo == "mes":
-    base_filtrada = base_filtrada[
-        (base_filtrada["Data"] >= hoje) &
-        (base_filtrada["Data"] <= hoje + pd.Timedelta(days=30))
-    ]
-
-base_filtrada = base_filtrada.sort_values(
-    by=["Atrasada", "Hoje", "Data"],
-    ascending=[False, False, True]
-)
-
-# =========================
-# KPIS
-# =========================
-
-total = len(base_filtrada)
-concluidas = int(base_filtrada["Concluída"].sum())
-pendentes = total - concluidas
-atrasadas = int(base_filtrada["Atrasada"].sum())
-
-c1, c2, c3, c4 = st.columns(4)
-
-c1.markdown(f'<div class="kpi-card"><div class="kpi-label">TOTAL FILTRADO</div><div class="kpi-number">{total}</div></div>', unsafe_allow_html=True)
-c2.markdown(f'<div class="kpi-card"><div class="kpi-label">CONCLUÍDAS</div><div class="kpi-number">{concluidas}</div></div>', unsafe_allow_html=True)
-c3.markdown(f'<div class="kpi-card"><div class="kpi-label">PENDENTES</div><div class="kpi-number">{pendentes}</div></div>', unsafe_allow_html=True)
-c4.markdown(f'<div class="kpi-card"><div class="kpi-label">ATRASADAS</div><div class="kpi-number">{atrasadas}</div></div>', unsafe_allow_html=True)
-
-st.divider()
-
-# =========================
-# AÇÕES
-# =========================
-
-st.subheader("Ações")
+st.subheader("Ações por área")
 
 aba_pendentes, aba_concluidas, aba_atrasadas, aba_todas = st.tabs(
     ["Pendentes", "Concluídas", "Atrasadas", "Todas"]
@@ -403,7 +291,7 @@ def renderizar_acoes(base, nome_aba):
                     f"""
                     <div style="border-top:8px solid {cor}; border-radius:18px; padding-top:14px;">
                         <div class="area-title">{escape(str(area))}</div>
-                        <div class="area-subtitle">{len(dados_area)} ações neste filtro</div>
+                        <div class="area-subtitle">{len(dados_area)} ações</div>
                     </div>
                     """,
                     unsafe_allow_html=True
@@ -465,16 +353,16 @@ def renderizar_acoes(base, nome_aba):
                                 mudar_status(id_acao, True)
 
 with aba_pendentes:
-    renderizar_acoes(base_filtrada[base_filtrada["Concluída"] == False], "pendentes")
+    renderizar_acoes(df[df["Concluída"] == False], "pendentes")
 
 with aba_concluidas:
-    renderizar_acoes(base_filtrada[base_filtrada["Concluída"] == True], "concluidas")
+    renderizar_acoes(df[df["Concluída"] == True], "concluidas")
 
 with aba_atrasadas:
-    renderizar_acoes(base_filtrada[base_filtrada["Atrasada"] == True], "atrasadas")
+    renderizar_acoes(df[df["Atrasada"] == True], "atrasadas")
 
 with aba_todas:
-    renderizar_acoes(base_filtrada, "todas")
+    renderizar_acoes(df, "todas")
 
 st.markdown("""
 <div class="footer">
