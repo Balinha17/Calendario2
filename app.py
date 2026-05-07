@@ -11,10 +11,6 @@ ARQUIVO_EXCEL = "Calendário2.xlsx"
 ARQUIVO_STATUS = "status_acoes.csv"
 LOGO_PATH = "logo_pucrs.png"
 
-# =========================
-# DADOS
-# =========================
-
 df = pd.read_excel(ARQUIVO_EXCEL)
 df.columns = df.columns.str.strip()
 
@@ -52,10 +48,6 @@ cores = {
     "COBRANÇA": "#FF8C00",
 }
 
-# =========================
-# FUNÇÕES
-# =========================
-
 def salvar_status():
     df[["ID", "Concluída", "Observação acompanhamento"]].to_csv(
         ARQUIVO_STATUS,
@@ -78,59 +70,61 @@ def img_to_base64(path):
             return base64.b64encode(img.read()).decode()
     return None
 
-# =========================
-# CSS
-# =========================
-
 st.markdown("""
 <style>
 :root {
-    --page-bg: #F6F8FC;
+    --app-bg: #F5F7FB;
     --card-bg: #FFFFFF;
-    --inner-bg: #F3F6FB;
+    --card-inner: #F1F5FB;
     --text-main: #00133F;
-    --text-soft: #3B465A;
-    --border: #D9E2F1;
-    --input-bg: #F0F3F8;
-    --shadow: rgba(0, 0, 0, .07);
+    --text-muted: #46556B;
+    --border-soft: #D5DEEC;
+    --input-bg: #EEF2F7;
 }
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --page-bg: #0E1117;
-        --card-bg: #171B24;
-        --inner-bg: #202635;
-        --text-main: #F9FAFB;
-        --text-soft: #D1D5DB;
-        --border: #3A4354;
-        --input-bg: #252B38;
-        --shadow: rgba(0, 0, 0, .35);
+        --app-bg: #0E1117;
+        --card-bg: #161B24;
+        --card-inner: #202837;
+        --text-main: #F8FAFC;
+        --text-muted: #CBD5E1;
+        --border-soft: #384456;
+        --input-bg: #232B3A;
     }
 }
 
 .stApp {
-    background: var(--page-bg);
+    background: var(--app-bg) !important;
 }
 
 .block-container {
-    padding-top: 1.5rem;
+    padding-top: 1.4rem;
+}
+
+h1, h2, h3, h4, h5, h6, p, label, span, div {
+    color: var(--text-main);
 }
 
 .header {
     background: linear-gradient(90deg,#00133F,#004AAD);
     border-radius: 24px;
     padding: 36px 42px;
-    color: white;
-    box-shadow: 0 8px 24px rgba(0,27,94,.25);
+    color: white !important;
+    box-shadow: 0 8px 24px rgba(0,27,94,.28);
     margin-bottom: 28px;
+}
+
+.header * {
+    color: white !important;
 }
 
 .kpi-card {
     background: var(--card-bg);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-soft);
     border-radius: 20px;
     padding: 22px;
-    box-shadow: 0 5px 18px var(--shadow);
+    box-shadow: 0 5px 18px rgba(0,0,0,.08);
 }
 
 .kpi-label {
@@ -145,35 +139,18 @@ st.markdown("""
     font-weight: 950;
 }
 
-.area-wrapper {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 22px;
-    box-shadow: 0 5px 18px var(--shadow);
-    margin-bottom: 26px;
-}
-
 .area-title {
-    font-size: 27px;
+    font-size: 26px;
     font-weight: 950;
     color: var(--text-main);
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 
 .area-subtitle {
     font-size: 14px;
-    color: var(--text-soft);
+    color: var(--text-muted);
     font-weight: 700;
-    margin-bottom: 18px;
-}
-
-.action-card {
-    background: var(--inner-bg);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 16px;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
 }
 
 .action-title {
@@ -185,14 +162,14 @@ st.markdown("""
 
 .obs-original {
     margin-top: 8px;
-    color: var(--text-soft);
+    color: var(--text-muted);
     font-size: 14px;
     line-height: 1.35;
 }
 
 .pill {
     display: inline-block;
-    color: white;
+    color: white !important;
     padding: 5px 11px;
     border-radius: 999px;
     font-weight: 900;
@@ -201,28 +178,41 @@ st.markdown("""
     margin-bottom: 8px;
 }
 
-textarea, input {
+.area-divider {
+    height: 1px;
+    background: var(--border-soft);
+    margin: 16px 0;
+}
+
+[data-testid="stVerticalBlockBorderWrapper"] {
+    background: var(--card-bg) !important;
+    border-color: var(--border-soft) !important;
+    box-shadow: 0 5px 16px rgba(0,0,0,.07);
+}
+
+textarea, input, [data-baseweb="input"] {
     background-color: var(--input-bg) !important;
     color: var(--text-main) !important;
 }
 
-label, .stMarkdown, .stText, p, span {
-    color: var(--text-main);
+.stTextArea textarea {
+    background-color: var(--input-bg) !important;
+    color: var(--text-main) !important;
 }
 
 .footer {
     background: #001B5E;
-    color: white;
+    color: white !important;
     padding: 18px 24px;
     border-radius: 18px;
     margin-top: 20px;
 }
+
+.footer * {
+    color: white !important;
+}
 </style>
 """, unsafe_allow_html=True)
-
-# =========================
-# HEADER
-# =========================
 
 logo_b64 = img_to_base64(LOGO_PATH)
 
@@ -244,10 +234,6 @@ st.markdown(f"""
     </div>
 </div>
 """, unsafe_allow_html=True)
-
-# =========================
-# FILTROS
-# =========================
 
 st.subheader("Filtros")
 
@@ -310,10 +296,6 @@ base_filtrada = base_filtrada.sort_values(
 
 st.divider()
 
-# =========================
-# RESUMO
-# =========================
-
 total = len(base_filtrada)
 concluidas = int(base_filtrada["Concluída"].sum())
 pendentes = total - concluidas
@@ -321,31 +303,12 @@ atrasadas = int(base_filtrada["Atrasada"].sum())
 
 c1, c2, c3, c4 = st.columns(4)
 
-c1.markdown(
-    f'<div class="kpi-card"><div class="kpi-label">TOTAL FILTRADO</div><div class="kpi-number">{total}</div></div>',
-    unsafe_allow_html=True
-)
-
-c2.markdown(
-    f'<div class="kpi-card"><div class="kpi-label">CONCLUÍDAS</div><div class="kpi-number">{concluidas}</div></div>',
-    unsafe_allow_html=True
-)
-
-c3.markdown(
-    f'<div class="kpi-card"><div class="kpi-label">PENDENTES</div><div class="kpi-number">{pendentes}</div></div>',
-    unsafe_allow_html=True
-)
-
-c4.markdown(
-    f'<div class="kpi-card"><div class="kpi-label">ATRASADAS</div><div class="kpi-number">{atrasadas}</div></div>',
-    unsafe_allow_html=True
-)
+c1.markdown(f'<div class="kpi-card"><div class="kpi-label">TOTAL FILTRADO</div><div class="kpi-number">{total}</div></div>', unsafe_allow_html=True)
+c2.markdown(f'<div class="kpi-card"><div class="kpi-label">CONCLUÍDAS</div><div class="kpi-number">{concluidas}</div></div>', unsafe_allow_html=True)
+c3.markdown(f'<div class="kpi-card"><div class="kpi-label">PENDENTES</div><div class="kpi-number">{pendentes}</div></div>', unsafe_allow_html=True)
+c4.markdown(f'<div class="kpi-card"><div class="kpi-label">ATRASADAS</div><div class="kpi-number">{atrasadas}</div></div>', unsafe_allow_html=True)
 
 st.divider()
-
-# =========================
-# AÇÕES
-# =========================
 
 st.subheader("Ações")
 
@@ -360,7 +323,7 @@ def renderizar_acoes(base, nome_aba):
         st.info("Nenhuma ação nesta categoria.")
         return
 
-    cols = st.columns(3)
+    cols = st.columns(3, gap="large")
 
     for i, area in enumerate(areas):
         dados_area = base[base["Área"] == area].sort_values(
@@ -371,71 +334,71 @@ def renderizar_acoes(base, nome_aba):
         cor = cores.get(str(area).upper().strip(), "#001B5E")
 
         with cols[i % 3]:
-            st.markdown(
-                f"""
-                <div class="area-wrapper" style="border-top:8px solid {cor};">
-                    <div class="area-title">{escape(str(area))}</div>
-                    <div class="area-subtitle">{len(dados_area)} ações neste filtro</div>
-                """,
-                unsafe_allow_html=True
-            )
-
-            for _, row in dados_area.iterrows():
-                id_acao = row["ID"]
-                data_txt = row["Data"].strftime("%d/%m")
-                acao = row["Ação sobre"]
-                obs = row["Observação"]
-                obs_acomp = row["Observação acompanhamento"]
-
-                if row["Concluída"]:
-                    status_txt = "Concluída"
-                    status_cor = "#17A65B"
-                elif row["Atrasada"]:
-                    status_txt = "Atrasada"
-                    status_cor = "#D62828"
-                elif row["Hoje"]:
-                    status_txt = "Hoje"
-                    status_cor = "#FFB000"
-                else:
-                    status_txt = "Pendente"
-                    status_cor = "#6B7280"
-
+            with st.container(border=True):
                 st.markdown(
                     f"""
-                    <div class="action-card">
-                        <span class="pill" style="background:{cor};">{data_txt}</span>
-                        <span class="pill" style="background:{status_cor};">{status_txt}</span>
-                        <div class="action-title">{escape(str(acao))}</div>
-                        <div class="obs-original">{escape(str(obs))}</div>
+                    <div style="border-top:8px solid {cor}; border-radius:18px; padding-top:16px;">
+                        <div class="area-title">{escape(str(area))}</div>
+                        <div class="area-subtitle">{len(dados_area)} ações neste filtro</div>
                     </div>
                     """,
                     unsafe_allow_html=True
                 )
 
-                key_base = f"{nome_aba}_{id_acao}"
+                for idx, (_, row) in enumerate(dados_area.iterrows()):
+                    id_acao = row["ID"]
+                    data_txt = row["Data"].strftime("%d/%m")
+                    acao = row["Ação sobre"]
+                    obs = row["Observação"]
+                    obs_acomp = row["Observação acompanhamento"]
 
-                nova_obs = st.text_area(
-                    "Observação de acompanhamento",
-                    value=str(obs_acomp) if pd.notna(obs_acomp) else "",
-                    key=f"obs_{key_base}",
-                    height=75
-                )
+                    if row["Concluída"]:
+                        status_txt = "Concluída"
+                        status_cor = "#17A65B"
+                    elif row["Atrasada"]:
+                        status_txt = "Atrasada"
+                        status_cor = "#D62828"
+                    elif row["Hoje"]:
+                        status_txt = "Hoje"
+                        status_cor = "#FFB000"
+                    else:
+                        status_txt = "Pendente"
+                        status_cor = "#6B7280"
 
-                b1, b2 = st.columns([1, 1])
+                    if idx > 0:
+                        st.markdown('<div class="area-divider"></div>', unsafe_allow_html=True)
 
-                if b1.button("Salvar observação", key=f"salvar_{key_base}"):
-                    salvar_observacao(id_acao, nova_obs)
+                    with st.container(border=True):
+                        st.markdown(
+                            f"""
+                            <span class="pill" style="background:{cor};">{data_txt}</span>
+                            <span class="pill" style="background:{status_cor};">{status_txt}</span>
+                            <div class="action-title">{escape(str(acao))}</div>
+                            <div class="obs-original">{escape(str(obs))}</div>
+                            """,
+                            unsafe_allow_html=True
+                        )
 
-                if row["Concluída"]:
-                    if b2.button("Desfazer conclusão", key=f"desfazer_{key_base}"):
-                        mudar_status(id_acao, False)
-                else:
-                    if b2.button("Concluir", key=f"concluir_{key_base}", type="primary"):
-                        mudar_status(id_acao, True)
+                        key_base = f"{nome_aba}_{id_acao}"
 
-                st.write("")
+                        nova_obs = st.text_area(
+                            "Observação de acompanhamento",
+                            value=str(obs_acomp) if pd.notna(obs_acomp) else "",
+                            key=f"obs_{key_base}",
+                            height=70
+                        )
 
-            st.markdown("</div>", unsafe_allow_html=True)
+                        b1, b2 = st.columns([1.3, 1])
+
+                        if b1.button("Salvar observação", key=f"salvar_{key_base}"):
+                            salvar_observacao(id_acao, nova_obs)
+
+                        if row["Concluída"]:
+                            if b2.button("Desfazer", key=f"desfazer_{key_base}"):
+                                mudar_status(id_acao, False)
+                        else:
+                            if b2.button("Concluir", key=f"concluir_{key_base}", type="primary"):
+                                mudar_status(id_acao, True)
 
 with aba_pendentes:
     renderizar_acoes(
