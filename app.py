@@ -12,7 +12,7 @@ ARQUIVO_STATUS = "status_acoes.csv"
 LOGO_PATH = "logo_pucrs.png"
 
 # =========================
-# DADOS
+# LEITURA DOS DADOS
 # =========================
 
 df = pd.read_excel(ARQUIVO_EXCEL)
@@ -23,13 +23,13 @@ df = df.dropna(subset=["Data", "Área", "Ação sobre"])
 
 df["Data"] = pd.to_datetime(df["Data"], errors="coerce", dayfirst=True)
 df = df.dropna(subset=["Data"])
-df = df.sort_values("Data")
+df = df.sort_values("Data").reset_index(drop=True)
 
 df["ID"] = (
+    df.index.astype(str) + "_" +
     df["Data"].dt.strftime("%Y%m%d") + "_" +
     df["Área"].astype(str) + "_" +
-    df["Ação sobre"].astype(str) + "_" +
-    df["Observação"].astype(str)
+    df["Ação sobre"].astype(str)
 )
 
 if Path(ARQUIVO_STATUS).exists():
@@ -60,13 +60,15 @@ def salvar_status():
     salvar = df[["ID", "Concluída", "Observação acompanhamento"]].copy()
     salvar.to_csv(ARQUIVO_STATUS, index=False)
 
-def atualizar_status(id_acao, concluida):
+def mudar_status(id_acao, concluida):
     df.loc[df["ID"] == id_acao, "Concluída"] = concluida
     salvar_status()
+    st.rerun()
 
-def atualizar_obs(id_acao, obs):
+def salvar_observacao(id_acao, obs):
     df.loc[df["ID"] == id_acao, "Observação acompanhamento"] = obs
     salvar_status()
+    st.rerun()
 
 def img_to_base64(path):
     if Path(path).exists():
@@ -113,35 +115,32 @@ st.markdown("""
     font-weight: 950;
 }
 
-.area-box {
+.area-header-card {
     background: white;
     border: 1px solid #D9E2F1;
     border-radius: 22px;
-    padding: 18px;
+    padding: 18px 20px;
     box-shadow: 0 5px 18px rgba(0,0,0,.06);
-    margin-bottom: 22px;
+    margin-bottom: 14px;
 }
 
 .area-title {
-    font-size: 25px;
+    font-size: 26px;
     font-weight: 950;
     color: #001B5E;
-    margin-bottom: 8px;
 }
 
-.action-card {
-    background: #FFFFFF;
-    border: 1px solid #E3EAF5;
-    border-radius: 18px;
-    padding: 16px;
-    margin-bottom: 14px;
-    box-shadow: 0 3px 10px rgba(0,0,0,.04);
+.area-subtitle {
+    color: #5B6475;
+    font-size: 14px;
+    font-weight: 700;
 }
 
 .action-title {
-    font-size: 16px;
-    font-weight: 900;
+    font-size: 17px;
+    font-weight: 950;
     color: #00133F;
+    margin-top: 4px;
 }
 
 .obs-original {
@@ -160,6 +159,12 @@ st.markdown("""
     font-size: 12px;
     margin-right: 6px;
     margin-bottom: 8px;
+}
+
+.card-footer-note {
+    font-size: 13px;
+    color: #5B6475;
+    margin-top: 6px;
 }
 
 .footer {
@@ -198,14 +203,13 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # =========================
-# KPIs
+# RESUMO
 # =========================
 
 total = len(df)
 concluidas = int(df["Concluída"].sum())
 pendentes = total - concluidas
 atrasadas = int(df["Atrasada"].sum())
-progresso = concluidas / total if total else 0
 
 c1, c2, c3, c4 = st.columns(4)
 
@@ -214,56 +218,7 @@ c2.markdown(f'<div class="kpi-card"><div class="kpi-label">CONCLUÍDAS</div><div
 c3.markdown(f'<div class="kpi-card"><div class="kpi-label">PENDENTES</div><div class="kpi-number">{pendentes}</div></div>', unsafe_allow_html=True)
 c4.markdown(f'<div class="kpi-card"><div class="kpi-label">ATRASADAS</div><div class="kpi-number">{atrasadas}</div></div>', unsafe_allow_html=True)
 
-st.write("")
-st.progress(progresso, text=f"{concluidas} de {total} ações concluídas")
-
-# =========================
-# BARRAS POR ÁREA
-# =========================
-
-st.subheader("Progresso por área")
-
-for area in df["Área"].dropna().unique():
-    dados_area = df[df["Área"] == area]
-    total_area = len(dados_area)
-    concluidas_area = int(dados_area["Concluída"].sum())
-    progresso_area = concluidas_area / total_area if total_area else 0
-
-    st.markdown(f"**{area}** — {concluidas_area}/{total_area} concluídas")
-    st.progress(progresso_area)
-
 st.divider()
-
-# =========================
-# CONFIRMAÇÃO
-# =========================
-
-if "acao_confirmar" not in st.session_state:
-    st.session_state.acao_confirmar = None
-
-if "novo_status" not in st.session_state:
-    st.session_state.novo_status = None
-
-if st.session_state.acao_confirmar:
-    acao_id = st.session_state.acao_confirmar
-    linha = df[df["ID"] == acao_id].iloc[0]
-    texto_acao = linha["Ação sobre"]
-
-    with st.container(border=True):
-        st.warning(f"Confirmar alteração da ação: **{texto_acao}**?")
-
-        b1, b2 = st.columns(2)
-
-        if b1.button("Confirmar", type="primary"):
-            atualizar_status(acao_id, st.session_state.novo_status)
-            st.session_state.acao_confirmar = None
-            st.session_state.novo_status = None
-            st.rerun()
-
-        if b2.button("Cancelar"):
-            st.session_state.acao_confirmar = None
-            st.session_state.novo_status = None
-            st.rerun()
 
 # =========================
 # CARDS
@@ -275,7 +230,7 @@ aba_pendentes, aba_concluidas, aba_atrasadas, aba_todas = st.tabs(
     ["Pendentes", "Concluídas", "Atrasadas", "Todas"]
 )
 
-def renderizar_acoes(base):
+def renderizar_acoes(base, nome_aba):
     areas = list(base["Área"].dropna().unique())
 
     if not areas:
@@ -291,11 +246,9 @@ def renderizar_acoes(base):
         with cols[i % 3]:
             st.markdown(
                 f"""
-                <div class="area-box" style="border-top:8px solid {cor};">
+                <div class="area-header-card" style="border-top:8px solid {cor};">
                     <div class="area-title">{escape(str(area))}</div>
-                    <div style="color:#5B6475;font-weight:700;margin-bottom:14px;">
-                        {len(dados_area)} ações
-                    </div>
+                    <div class="area-subtitle">{len(dados_area)} ações</div>
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -332,45 +285,41 @@ def renderizar_acoes(base):
                         unsafe_allow_html=True
                     )
 
+                    key_base = f"{nome_aba}_{id_acao}"
+
                     nova_obs = st.text_area(
                         "Observação de acompanhamento",
                         value=str(obs_acomp) if pd.notna(obs_acomp) else "",
-                        key=f"obs_{id_acao}",
-                        height=80
+                        key=f"obs_{key_base}",
+                        height=75
                     )
 
-                    b1, b2 = st.columns(2)
+                    b1, b2 = st.columns([1, 1])
 
-                    if b1.button("Salvar observação", key=f"salvar_obs_{id_acao}"):
-                        atualizar_obs(id_acao, nova_obs)
-                        st.success("Observação salva.")
-                        st.rerun()
+                    if b1.button("Salvar observação", key=f"salvar_{key_base}"):
+                        salvar_observacao(id_acao, nova_obs)
 
-                    if not row["Concluída"]:
-                        if b2.button("Concluir", key=f"concluir_{id_acao}", type="primary"):
-                            st.session_state.acao_confirmar = id_acao
-                            st.session_state.novo_status = True
-                            st.rerun()
+                    if row["Concluída"]:
+                        if b2.button("Desfazer conclusão", key=f"desfazer_{key_base}"):
+                            mudar_status(id_acao, False)
                     else:
-                        if b2.button("Desfazer", key=f"desfazer_{id_acao}"):
-                            st.session_state.acao_confirmar = id_acao
-                            st.session_state.novo_status = False
-                            st.rerun()
+                        if b2.button("Concluir", key=f"concluir_{key_base}", type="primary"):
+                            mudar_status(id_acao, True)
 
 with aba_pendentes:
-    renderizar_acoes(df[df["Concluída"] == False])
+    renderizar_acoes(df[df["Concluída"] == False], "pendentes")
 
 with aba_concluidas:
-    renderizar_acoes(df[df["Concluída"] == True])
+    renderizar_acoes(df[df["Concluída"] == True], "concluidas")
 
 with aba_atrasadas:
-    renderizar_acoes(df[df["Atrasada"] == True])
+    renderizar_acoes(df[df["Atrasada"] == True], "atrasadas")
 
 with aba_todas:
-    renderizar_acoes(df)
+    renderizar_acoes(df, "todas")
 
 st.markdown("""
 <div class="footer">
-    Calendário visual de ações do Setor Financeiro | Atualização por cards
+    Calendário visual de ações do Setor Financeiro | Acompanhamento por cards
 </div>
 """, unsafe_allow_html=True)
