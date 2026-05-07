@@ -4,13 +4,16 @@ import base64
 from pathlib import Path
 from html import escape
 from datetime import date
-from io import BytesIO
 
 st.set_page_config(page_title="Calendário de Ações", layout="wide")
 
 ARQUIVO_EXCEL = "Calendário2.xlsx"
 ARQUIVO_STATUS = "status_acoes.csv"
 LOGO_PATH = "logo_pucrs.png"
+
+# =========================
+# DADOS
+# =========================
 
 df = pd.read_excel(ARQUIVO_EXCEL)
 df.columns = df.columns.str.strip()
@@ -39,7 +42,6 @@ df["Concluída"] = df["Concluída"].fillna(False).astype(bool)
 df["Observação acompanhamento"] = df["Observação acompanhamento"].fillna("")
 
 hoje = pd.Timestamp(date.today())
-
 df["Atrasada"] = (df["Data"] < hoje) & (~df["Concluída"])
 df["Hoje"] = df["Data"] == hoje
 
@@ -50,8 +52,15 @@ cores = {
     "COBRANÇA": "#FF8C00",
 }
 
+# =========================
+# FUNÇÕES
+# =========================
+
 def salvar_status():
-    df[["ID", "Concluída", "Observação acompanhamento"]].to_csv(ARQUIVO_STATUS, index=False)
+    df[["ID", "Concluída", "Observação acompanhamento"]].to_csv(
+        ARQUIVO_STATUS,
+        index=False
+    )
 
 def mudar_status(id_acao, concluida):
     df.loc[df["ID"] == id_acao, "Concluída"] = concluida
@@ -69,44 +78,38 @@ def img_to_base64(path):
             return base64.b64encode(img.read()).decode()
     return None
 
-def preparar_exportacao(base):
-    export = base[[
-        "Data",
-        "Área",
-        "Ação sobre",
-        "Observação",
-        "Concluída",
-        "Atrasada",
-        "Observação acompanhamento"
-    ]].copy()
-
-    export["Data"] = pd.to_datetime(export["Data"], errors="coerce").dt.strftime("%d/%m/%Y")
-    return export
-
-def gerar_excel(base_exportada):
-    buffer = BytesIO()
-    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
-        base_exportada.to_excel(writer, index=False, sheet_name="Calendário")
-    return buffer.getvalue()
+# =========================
+# CSS
+# =========================
 
 st.markdown("""
 <style>
 :root {
+    --page-bg: #F6F8FC;
     --card-bg: #FFFFFF;
+    --inner-bg: #F3F6FB;
     --text-main: #00133F;
     --text-soft: #3B465A;
     --border: #D9E2F1;
-    --soft-bg: #F6F8FC;
+    --input-bg: #F0F3F8;
+    --shadow: rgba(0, 0, 0, .07);
 }
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --card-bg: #111827;
+        --page-bg: #0E1117;
+        --card-bg: #171B24;
+        --inner-bg: #202635;
         --text-main: #F9FAFB;
         --text-soft: #D1D5DB;
-        --border: #374151;
-        --soft-bg: #1F2937;
+        --border: #3A4354;
+        --input-bg: #252B38;
+        --shadow: rgba(0, 0, 0, .35);
     }
+}
+
+.stApp {
+    background: var(--page-bg);
 }
 
 .block-container {
@@ -122,12 +125,12 @@ st.markdown("""
     margin-bottom: 28px;
 }
 
-.kpi-card, .area-summary, .area-group {
+.kpi-card {
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: 20px;
     padding: 22px;
-    box-shadow: 0 5px 18px rgba(0,0,0,.08);
+    box-shadow: 0 5px 18px var(--shadow);
 }
 
 .kpi-label {
@@ -142,29 +145,35 @@ st.markdown("""
     font-weight: 950;
 }
 
-.area-summary-title, .area-title {
-    color: var(--text-main);
-    font-weight: 950;
-}
-
-.area-summary-title {
-    font-size: 18px;
+.area-wrapper {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 22px;
+    box-shadow: 0 5px 18px var(--shadow);
+    margin-bottom: 26px;
 }
 
 .area-title {
-    font-size: 26px;
+    font-size: 27px;
+    font-weight: 950;
+    color: var(--text-main);
+    margin-bottom: 4px;
 }
 
-.area-summary-text, .area-subtitle, .obs-original {
+.area-subtitle {
+    font-size: 14px;
     color: var(--text-soft);
+    font-weight: 700;
+    margin-bottom: 18px;
 }
 
 .action-card {
-    background: var(--soft-bg);
+    background: var(--inner-bg);
     border: 1px solid var(--border);
     border-radius: 18px;
     padding: 16px;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
 }
 
 .action-title {
@@ -176,6 +185,7 @@ st.markdown("""
 
 .obs-original {
     margin-top: 8px;
+    color: var(--text-soft);
     font-size: 14px;
     line-height: 1.35;
 }
@@ -191,6 +201,15 @@ st.markdown("""
     margin-bottom: 8px;
 }
 
+textarea, input {
+    background-color: var(--input-bg) !important;
+    color: var(--text-main) !important;
+}
+
+label, .stMarkdown, .stText, p, span {
+    color: var(--text-main);
+}
+
 .footer {
     background: #001B5E;
     color: white;
@@ -200,6 +219,10 @@ st.markdown("""
 }
 </style>
 """, unsafe_allow_html=True)
+
+# =========================
+# HEADER
+# =========================
 
 logo_b64 = img_to_base64(LOGO_PATH)
 
@@ -222,6 +245,10 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+# =========================
+# FILTROS
+# =========================
+
 st.subheader("Filtros")
 
 col_f1, col_f2, col_f3, col_f4 = st.columns([2, 1, 1, 1])
@@ -240,20 +267,33 @@ periodo_rapido = col_f2.radio(
     horizontal=True
 )
 
-data_inicio = col_f3.date_input("Data inicial", value=df["Data"].min().date())
-data_fim = col_f4.date_input("Data final", value=df["Data"].max().date())
+data_inicio = col_f3.date_input(
+    "Data inicial",
+    value=df["Data"].min().date()
+)
+
+data_fim = col_f4.date_input(
+    "Data final",
+    value=df["Data"].max().date()
+)
 
 base_filtrada = df.copy()
 
 if periodo_rapido == "Semana":
     inicio = hoje.normalize()
     fim = inicio + pd.Timedelta(days=7)
-    base_filtrada = base_filtrada[(base_filtrada["Data"] >= inicio) & (base_filtrada["Data"] <= fim)]
+    base_filtrada = base_filtrada[
+        (base_filtrada["Data"] >= inicio) &
+        (base_filtrada["Data"] <= fim)
+    ]
 
 elif periodo_rapido == "Mês":
     inicio = hoje.normalize()
     fim = inicio + pd.Timedelta(days=30)
-    base_filtrada = base_filtrada[(base_filtrada["Data"] >= inicio) & (base_filtrada["Data"] <= fim)]
+    base_filtrada = base_filtrada[
+        (base_filtrada["Data"] >= inicio) &
+        (base_filtrada["Data"] <= fim)
+    ]
 
 else:
     base_filtrada = base_filtrada[
@@ -270,6 +310,10 @@ base_filtrada = base_filtrada.sort_values(
 
 st.divider()
 
+# =========================
+# RESUMO
+# =========================
+
 total = len(base_filtrada)
 concluidas = int(base_filtrada["Concluída"].sum())
 pendentes = total - concluidas
@@ -277,61 +321,31 @@ atrasadas = int(base_filtrada["Atrasada"].sum())
 
 c1, c2, c3, c4 = st.columns(4)
 
-c1.markdown(f'<div class="kpi-card"><div class="kpi-label">TOTAL FILTRADO</div><div class="kpi-number">{total}</div></div>', unsafe_allow_html=True)
-c2.markdown(f'<div class="kpi-card"><div class="kpi-label">CONCLUÍDAS</div><div class="kpi-number">{concluidas}</div></div>', unsafe_allow_html=True)
-c3.markdown(f'<div class="kpi-card"><div class="kpi-label">PENDENTES</div><div class="kpi-number">{pendentes}</div></div>', unsafe_allow_html=True)
-c4.markdown(f'<div class="kpi-card"><div class="kpi-label">ATRASADAS</div><div class="kpi-number">{atrasadas}</div></div>', unsafe_allow_html=True)
-
-st.write("")
-
-st.subheader("Resumo por área")
-
-resumo_cols = st.columns(4)
-
-for i, area in enumerate(sorted(base_filtrada["Área"].dropna().unique())):
-    dados_area = base_filtrada[base_filtrada["Área"] == area]
-    total_area = len(dados_area)
-    concluidas_area = int(dados_area["Concluída"].sum())
-    pendentes_area = total_area - concluidas_area
-    atrasadas_area = int(dados_area["Atrasada"].sum())
-    cor = cores.get(str(area).upper().strip(), "#001B5E")
-
-    with resumo_cols[i % 4]:
-        st.markdown(f"""
-        <div class="area-summary" style="border-top:6px solid {cor};">
-            <div class="area-summary-title">{escape(str(area))}</div>
-            <div class="area-summary-text">
-                Total: <strong>{total_area}</strong><br>
-                Pendentes: <strong>{pendentes_area}</strong><br>
-                Concluídas: <strong>{concluidas_area}</strong><br>
-                Atrasadas: <strong>{atrasadas_area}</strong>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-st.divider()
-
-st.subheader("Exportação")
-
-exportar = preparar_exportacao(base_filtrada)
-
-e1, e2 = st.columns(2)
-
-e1.download_button(
-    "Baixar CSV filtrado",
-    data=exportar.to_csv(index=False).encode("utf-8-sig"),
-    file_name="calendario_acoes_filtrado.csv",
-    mime="text/csv"
+c1.markdown(
+    f'<div class="kpi-card"><div class="kpi-label">TOTAL FILTRADO</div><div class="kpi-number">{total}</div></div>',
+    unsafe_allow_html=True
 )
 
-e2.download_button(
-    "Baixar Excel filtrado",
-    data=gerar_excel(exportar),
-    file_name="calendario_acoes_filtrado.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+c2.markdown(
+    f'<div class="kpi-card"><div class="kpi-label">CONCLUÍDAS</div><div class="kpi-number">{concluidas}</div></div>',
+    unsafe_allow_html=True
+)
+
+c3.markdown(
+    f'<div class="kpi-card"><div class="kpi-label">PENDENTES</div><div class="kpi-number">{pendentes}</div></div>',
+    unsafe_allow_html=True
+)
+
+c4.markdown(
+    f'<div class="kpi-card"><div class="kpi-label">ATRASADAS</div><div class="kpi-number">{atrasadas}</div></div>',
+    unsafe_allow_html=True
 )
 
 st.divider()
+
+# =========================
+# AÇÕES
+# =========================
 
 st.subheader("Ações")
 
@@ -359,10 +373,9 @@ def renderizar_acoes(base, nome_aba):
         with cols[i % 3]:
             st.markdown(
                 f"""
-                <div class="area-group" style="border-top:8px solid {cor}; margin-bottom:16px;">
+                <div class="area-wrapper" style="border-top:8px solid {cor};">
                     <div class="area-title">{escape(str(area))}</div>
                     <div class="area-subtitle">{len(dados_area)} ações neste filtro</div>
-                </div>
                 """,
                 unsafe_allow_html=True
             )
@@ -422,20 +435,34 @@ def renderizar_acoes(base, nome_aba):
 
                 st.write("")
 
+            st.markdown("</div>", unsafe_allow_html=True)
+
 with aba_pendentes:
-    renderizar_acoes(base_filtrada[base_filtrada["Concluída"] == False], "pendentes")
+    renderizar_acoes(
+        base_filtrada[base_filtrada["Concluída"] == False],
+        "pendentes"
+    )
 
 with aba_concluidas:
-    renderizar_acoes(base_filtrada[base_filtrada["Concluída"] == True], "concluidas")
+    renderizar_acoes(
+        base_filtrada[base_filtrada["Concluída"] == True],
+        "concluidas"
+    )
 
 with aba_atrasadas:
-    renderizar_acoes(base_filtrada[base_filtrada["Atrasada"] == True], "atrasadas")
+    renderizar_acoes(
+        base_filtrada[base_filtrada["Atrasada"] == True],
+        "atrasadas"
+    )
 
 with aba_todas:
-    renderizar_acoes(base_filtrada, "todas")
+    renderizar_acoes(
+        base_filtrada,
+        "todas"
+    )
 
 st.markdown("""
 <div class="footer">
-    Calendário visual de ações do Setor Financeiro | Filtros, resumo por área e exportação
+    Calendário visual de ações do Setor Financeiro | Acompanhamento por cards
 </div>
 """, unsafe_allow_html=True)
