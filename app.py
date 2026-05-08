@@ -213,6 +213,9 @@ div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlock
     padding: 18px 24px;
     border-radius: 18px;
     margin-top: 20px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 600;
 }
 
 @media (max-width: 1100px) {
@@ -241,9 +244,9 @@ header_html = f"""
 {logo_html}
 <div style="height:72px;width:2px;background:rgba(255,255,255,.45);"></div>
 <div>
-<div style="font-size:23px;font-weight:800;">ESTRUTURA DO SETOR FINANCEIRO</div>
+<div style="font-size:23px;font-weight:800;">SETOR FINANCEIRO ACADÊMICO</div>
 <div style="font-size:52px;font-weight:950;line-height:1;margin-top:8px;">CALENDÁRIO DE AÇÕES</div>
-<div style="font-size:20px;color:#8FDBFF!important;margin-top:14px;">Acompanhamento das ações por área</div>
+<div style="font-size:20px;color:#8FDBFF!important;margin-top:14px;">Gestão e acompanhamento das demandas operacionais</div>
 </div>
 </div>
 <div class="header-kpis">
@@ -362,6 +365,6 @@ with aba_todas:
 
 st.markdown("""
 <div class="footer">
-Calendário visual de ações do Setor Financeiro | Acompanhamento por cards
+Painel interno de acompanhamento • Setor Financeiro Acadêmico PUCRS
 </div>
 """, unsafe_allow_html=True)
