@@ -246,7 +246,7 @@ header_html = f"""
 <div>
 <div style="font-size:23px;font-weight:800;">SETOR FINANCEIRO ACADÊMICO</div>
 <div style="font-size:52px;font-weight:950;line-height:1;margin-top:8px;">CALENDÁRIO DE AÇÕES</div>
-<div style="font-size:20px;color:#8FDBFF!important;margin-top:14px;">Gestão e acompanhamento das demandas operacionais</div>
+<div style="font-size:20px;color:#8FDBFF!important;margin-top:14px;">Gestão e acompanhamento de demandas</div>
 </div>
 </div>
 <div class="header-kpis">
