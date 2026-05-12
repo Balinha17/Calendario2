@@ -1,119 +1,82 @@
 import streamlit as st
 import pandas as pd
 import base64
+import sqlite3
 from pathlib import Path
 from html import escape
 from datetime import date
-import unicodedata
-
-try:
-    import gspread
-    from google.oauth2.service_account import Credentials
-except ImportError:
-    gspread = None
-    Credentials = None
 
 st.set_page_config(page_title="Calendário de Ações", layout="wide")
 
 CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCNXpx2t_KjaiKIeS3KCJa_vVd3eBaxf6uCfL5IXKT5Uz2Bml1gge5Yfq0OB5dMdnQYj2o3rJ3qEpz/pub?gid=0&single=true&output=csv"
 
-ARQUIVO_STATUS = "status_acoes.csv"
+BANCO_DADOS = "calendario.db"
 LOGO_PATH = "logo_pucrs.png"
 
-STATUS_WORKSHEET_NAME = "Status_Acoes"
-
 # =========================
-# FUNÇÕES AUXILIARES
+# BANCO SQLITE
 # =========================
 
-def normalizar_texto(txt):
-    txt = str(txt).strip().upper()
-    txt = unicodedata.normalize("NFKD", txt).encode("ASCII", "ignore").decode("utf-8")
-    return txt
+def conectar_banco():
+    return sqlite3.connect(BANCO_DADOS, check_same_thread=False)
 
-def img_to_base64(path):
-    if Path(path).exists():
-        with open(path, "rb") as img:
-            return base64.b64encode(img.read()).decode()
-    return None
+def criar_tabela():
+    conn = conectar_banco()
+    cursor = conn.cursor()
 
-def google_status_habilitado():
-    return (
-        gspread is not None
-        and "gcp_service_account" in st.secrets
-        and "STATUS_SPREADSHEET_ID" in st.secrets
-    )
-
-def abrir_status_sheet():
-    scopes = [
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive",
-    ]
-
-    creds = Credentials.from_service_account_info(
-        dict(st.secrets["gcp_service_account"]),
-        scopes=scopes
-    )
-
-    client = gspread.authorize(creds)
-    spreadsheet = client.open_by_key(st.secrets["STATUS_SPREADSHEET_ID"])
-
-    try:
-        worksheet = spreadsheet.worksheet(STATUS_WORKSHEET_NAME)
-    except gspread.WorksheetNotFound:
-        worksheet = spreadsheet.add_worksheet(
-            title=STATUS_WORKSHEET_NAME,
-            rows=1000,
-            cols=3
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS status_acoes (
+            id TEXT PRIMARY KEY,
+            concluida INTEGER DEFAULT 0,
+            observacao_acompanhamento TEXT DEFAULT ''
         )
-        worksheet.update([["ID", "Concluída", "Observação acompanhamento"]])
+    """)
 
-    return worksheet
+    conn.commit()
+    conn.close()
 
 def carregar_status():
-    if google_status_habilitado():
-        worksheet = abrir_status_sheet()
-        registros = worksheet.get_all_records()
+    criar_tabela()
+    conn = conectar_banco()
 
-        if registros:
-            return pd.DataFrame(registros)
+    status = pd.read_sql_query("""
+        SELECT
+            id AS ID,
+            concluida AS Concluída,
+            observacao_acompanhamento AS "Observação acompanhamento"
+        FROM status_acoes
+    """, conn)
 
-        return pd.DataFrame(columns=["ID", "Concluída", "Observação acompanhamento"])
+    conn.close()
 
-    if Path(ARQUIVO_STATUS).exists():
-        return pd.read_csv(ARQUIVO_STATUS)
+    if not status.empty:
+        status["Concluída"] = status["Concluída"].astype(bool)
 
-    return pd.DataFrame(columns=["ID", "Concluída", "Observação acompanhamento"])
+    return status
 
-def salvar_status(df_status):
-    df_status = df_status[["ID", "Concluída", "Observação acompanhamento"]].copy()
-    df_status["Concluída"] = df_status["Concluída"].astype(bool)
+def salvar_status_acao(id_acao, concluida, observacao):
+    criar_tabela()
+    conn = conectar_banco()
+    cursor = conn.cursor()
 
-    if google_status_habilitado():
-        worksheet = abrir_status_sheet()
+    cursor.execute("""
+        INSERT INTO status_acoes (
+            id,
+            concluida,
+            observacao_acompanhamento
+        )
+        VALUES (?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+            concluida = excluded.concluida,
+            observacao_acompanhamento = excluded.observacao_acompanhamento
+    """, (
+        id_acao,
+        1 if concluida else 0,
+        observacao if observacao else ""
+    ))
 
-        dados = [["ID", "Concluída", "Observação acompanhamento"]]
-
-        for _, row in df_status.iterrows():
-            dados.append([
-                str(row["ID"]),
-                "TRUE" if bool(row["Concluída"]) else "FALSE",
-                str(row["Observação acompanhamento"]) if pd.notna(row["Observação acompanhamento"]) else ""
-            ])
-
-        worksheet.clear()
-        worksheet.update(dados)
-    else:
-        df_status.to_csv(ARQUIVO_STATUS, index=False)
-
-def gerar_id(row):
-    return (
-        row["Data"].strftime("%Y%m%d")
-        + "_"
-        + normalizar_texto(row["Área"])
-        + "_"
-        + normalizar_texto(row["Ação sobre"])
-    )
+    conn.commit()
+    conn.close()
 
 # =========================
 # DADOS
@@ -129,28 +92,16 @@ df["Data"] = pd.to_datetime(df["Data"], errors="coerce", dayfirst=True)
 df = df.dropna(subset=["Data"])
 df = df.sort_values("Data").reset_index(drop=True)
 
-df["ID"] = df.apply(gerar_id, axis=1)
+df["ID"] = (
+    df.index.astype(str) + "_" +
+    df["Data"].dt.strftime("%Y%m%d") + "_" +
+    df["Área"].astype(str) + "_" +
+    df["Ação sobre"].astype(str)
+)
 
 status = carregar_status()
 
-if not status.empty:
-    status.columns = status.columns.str.strip()
-
-if "ID" not in status.columns:
-    status["ID"] = ""
-
-if "Concluída" not in status.columns:
-    status["Concluída"] = False
-
-if "Observação acompanhamento" not in status.columns:
-    status["Observação acompanhamento"] = ""
-
-status["ID"] = status["ID"].astype(str)
-status["Concluída"] = status["Concluída"].astype(str).str.upper().isin(["TRUE", "1", "SIM", "YES"])
-status["Observação acompanhamento"] = status["Observação acompanhamento"].fillna("")
-
 df = df.merge(status, on="ID", how="left")
-
 df["Concluída"] = df["Concluída"].fillna(False).astype(bool)
 df["Observação acompanhamento"] = df["Observação acompanhamento"].fillna("")
 
@@ -165,18 +116,27 @@ cores = {
     "COBRANÇA": "#FF8C00",
 }
 
-def estado_atualizado():
-    return df[["ID", "Concluída", "Observação acompanhamento"]].copy()
+# =========================
+# FUNÇÕES
+# =========================
 
 def mudar_status(id_acao, concluida):
-    df.loc[df["ID"] == id_acao, "Concluída"] = concluida
-    salvar_status(estado_atualizado())
+    linha = df[df["ID"] == id_acao].iloc[0]
+    observacao = linha["Observação acompanhamento"]
+    salvar_status_acao(id_acao, concluida, observacao)
     st.rerun()
 
 def salvar_observacao(id_acao, obs):
-    df.loc[df["ID"] == id_acao, "Observação acompanhamento"] = obs
-    salvar_status(estado_atualizado())
+    linha = df[df["ID"] == id_acao].iloc[0]
+    concluida = linha["Concluída"]
+    salvar_status_acao(id_acao, concluida, obs)
     st.rerun()
+
+def img_to_base64(path):
+    if Path(path).exists():
+        with open(path, "rb") as img:
+            return base64.b64encode(img.read()).decode()
+    return None
 
 total = len(df)
 concluidas = int(df["Concluída"].sum())
@@ -380,17 +340,15 @@ header_html = f"""
 
 st.markdown(header_html, unsafe_allow_html=True)
 
-if not google_status_habilitado():
-    st.warning(
-        "O app está lendo o calendário do Google Sheets, mas as conclusões/anotações ainda estão sendo salvas localmente. "
-        "Para persistência real, configure as credenciais do Google Sheets API no Streamlit Secrets."
-    )
-
 st.subheader("Ações por área")
 
 aba_pendentes, aba_concluidas, aba_atrasadas, aba_todas = st.tabs(
     ["Pendentes", "Concluídas", "Atrasadas", "Todas"]
 )
+
+# =========================
+# CARDS
+# =========================
 
 def renderizar_acoes(base, nome_aba):
     areas = list(base["Área"].dropna().unique())
